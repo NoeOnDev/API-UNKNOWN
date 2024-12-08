@@ -1,0 +1,5 @@
+{
+    "require": {
+        "stripe/stripe-php": "v14.1.0"
+    }
+}

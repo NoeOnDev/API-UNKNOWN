@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<!--
+  ~   $Id$
+  ~
+  ~   AbanteCart, Ideal OpenSource Ecommerce Solution
+  ~   http://www.AbanteCart.com
+  ~
+  ~   Copyright © 2011-2024 Belavier Commerce LLC
+  ~
+  ~   This source file is subject to Open Software License (OSL 3.0)
+  ~   License details is bundled with this package in the file LICENSE.txt.
+  ~   It is also available at this URL:
+  ~   <http://www.opensource.org/licenses/OSL-3.0>
+  ~
+  ~  UPGRADE NOTE:
+  ~    Do not edit or add to this file if you wish to upgrade AbanteCart to newer
+  ~    versions in the future. If you wish to customize AbanteCart for your
+  ~    needs please refer to http://www.AbanteCart.com for more information.
+  -->
+
+<definitions>
+	<definition>
+		<key>heading_title</key>
+		<value><![CDATA[Informe de productos vistos]]></value>
+	</definition>
+	<definition>
+		<key>text_success</key>
+		<value><![CDATA[Correcto: Se ha reseteado productos vistos!]]></value>
+	</definition>
+	<definition>
+		<key>column_product_id</key>
+		<value><![CDATA[Product ID]]></value>
+	</definition>
+	<definition>
+		<key>column_name</key>
+		<value><![CDATA[Nombre de producto]]></value>
+	</definition>
+	<definition>
+		<key>column_model</key>
+		<value><![CDATA[Modelo]]></value>
+	</definition>
+	<definition>
+		<key>column_viewed</key>
+		<value><![CDATA[Visto]]></value>
+	</definition>
+	<definition>
+		<key>column_category</key>
+		<value><![CDATA[Categoría]]></value>
+	</definition>
+	<definition>
+		<key>column_percent</key>
+		<value><![CDATA[Porcentaje]]></value>
+	</definition>
+	<definition>
+		<key>column_sku</key>
+		<value><![CDATA[SKU]]></value>
+	</definition>
+</definitions>
