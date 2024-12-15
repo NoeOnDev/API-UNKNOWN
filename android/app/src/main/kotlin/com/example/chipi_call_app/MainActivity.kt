@@ -1,4 +1,4 @@
-package com.example.water_app_pro
+package com.example.chipi_call_app
 
 import io.flutter.embedding.android.FlutterActivity
 

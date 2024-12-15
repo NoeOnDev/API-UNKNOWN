@@ -10,10 +10,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'Flutter Demo',
+      theme: ThemeData.dark(
+        useMaterial3: true,
+      ).copyWith(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      ),
       debugShowCheckedModeBanner: false,
-      home: HomeScreen(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const HomeScreen(),
+      },
     );
   }
 }

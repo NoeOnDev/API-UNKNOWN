@@ -1,6 +1,6 @@
 {
-    "name": "water_app_pro",
-    "short_name": "water_app_pro",
+    "name": "chipi_call_app",
+    "short_name": "chipi_call_app",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
