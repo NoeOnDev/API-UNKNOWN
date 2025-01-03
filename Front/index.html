@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Chat</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div id="login">
+        <input id="username" type="text" placeholder="Enter your name">
+        <button onclick="joinChat()">Join Chat</button>
+    </div>
+
+    <div id="chat">
+        <h3 id="userLabel"></h3>
+        <div>
+            <div>
+                <h4>Connected Users:</h4>
+                <ul id="userList"></ul>
+            </div>
+            <div>
+                <select id="recipient" title="Select a recipient">
+                    <option value="">Select a recipient</option>
+                </select>
+                <input id="message" type="text" placeholder="Type your message">
+                <button onclick="sendPrivateMessage()">Send</button>
+                <div id="messages"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/chat.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,22 @@
+.own-message {
+    color: blue;
+    text-align: right;
+}
+
+.other-message {
+    color: green;
+    text-align: left;
+}
+
+#chat {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+#messages {
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 10px;
+}
