@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
@@ -17,17 +17,19 @@
 
     <div id="chat">
         <h3 id="userLabel"></h3>
-        <div>
-            <div>
+        <div class="chat-container">
+            <div class="users-section">
                 <h4>Connected Users:</h4>
                 <ul id="userList"></ul>
             </div>
-            <div>
-                <select id="recipient" title="Select a recipient">
-                    <option value="">Select a recipient</option>
-                </select>
-                <input id="message" type="text" placeholder="Type your message">
-                <button onclick="sendPrivateMessage()">Send</button>
+            <div class="message-area">
+                <div class="input-container">
+                    <select id="recipient" title="Select a recipient">
+                        <option value="">Select a recipient</option>
+                    </select>
+                    <input id="message" type="text" placeholder="Type your message">
+                    <button onclick="sendPrivateMessage()">Send</button>
+                </div>
                 <div id="messages"></div>
             </div>
         </div>
