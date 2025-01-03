@@ -58,7 +58,7 @@ const validateEnv = (): EnvConfig => {
 
 const env = validateEnv();
 
-export const config = {
+export const envConfig = {
   port: {
     PORT: env.PORT,
   },
