@@ -172,3 +172,78 @@ button:hover {
     color: #666;
     margin-top: 4px;
 }
+
+/* Tablets y pantallas medianas */
+@media screen and (max-width: 768px) {
+  #chat {
+    margin: 10px;
+    padding: 15px;
+  }
+
+  .chat-container {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  #userList {
+    max-height: 200px;
+  }
+
+  .input-container {
+    flex-direction: column;
+  }
+
+  #recipient {
+    width: 100%;
+  }
+
+  #message {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  button {
+    width: 100%;
+  }
+}
+
+/* Móviles */
+@media screen and (max-width: 480px) {
+  body {
+    padding: 10px;
+  }
+
+  #login {
+    margin: 50px auto;
+    padding: 20px;
+  }
+
+  #messages {
+    height: 300px;
+  }
+
+  .own-message,
+  .other-message {
+    max-width: 90%;
+  }
+
+  #userLabel {
+    font-size: 20px;
+  }
+}
+
+/* Ajustes para pantallas muy pequeñas */
+@media screen and (max-width: 320px) {
+  #messages {
+    height: 250px;
+  }
+
+  #login {
+    padding: 15px;
+  }
+
+  #login input,
+  #login button {
+    padding: 8px;
+  }
+}
