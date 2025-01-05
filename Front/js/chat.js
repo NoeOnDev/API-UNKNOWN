@@ -35,20 +35,37 @@ function updateMessageView() {
     .join("");
 }
 
-socket.on("connected_users", (users) => {
+socket.on("users_status", (usersList) => {
   const userList = document.getElementById("userList");
-  const recipientSelect = document.getElementById("recipient");
-
-  const otherUsers = users.filter((user) => user !== username);
-
-  userList.innerHTML = otherUsers.map((user) => `<li>${user}</li>`).join("");
-
-  recipientSelect.innerHTML =
-    '<option value="">Select a recipient</option>' +
-    otherUsers
-      .map((user) => `<option value="${user}">${user}</option>`)
-      .join("");
+  const otherUsers = usersList.filter(user => user.username !== username);
+  
+  userList.innerHTML = otherUsers
+    .map(user => `
+      <li onclick="selectUser('${user.username}')" class="user-item">
+        <span class="status-indicator ${user.isOnline ? 'status-online' : 'status-offline'}"></span>
+        <span>${user.username}</span>
+        ${!user.isOnline && user.lastSeen ? `
+          <span class="last-seen">
+            Last seen: ${new Date(user.lastSeen).toLocaleTimeString()}
+          </span>
+        ` : ''}
+      </li>
+    `)
+    .join("");
 });
+
+function selectUser(user) {
+  currentRecipient = user;
+  socket.emit("get_history", user);
+  updateMessageView();
+  
+  document.querySelectorAll('#userList li').forEach(li => {
+    li.classList.remove('selected');
+    if(li.querySelector('span:nth-child(2)').textContent === user) {
+      li.classList.add('selected');
+    }
+  });
+}
 
 socket.on("message_history", (data) => {
   conversations.set(data.recipient, data.messages);
@@ -71,11 +88,10 @@ socket.on("private_message", (data) => {
 
 function sendPrivateMessage() {
   const message = document.getElementById("message").value;
-  const recipient = document.getElementById("recipient").value;
 
-  if (message.trim() && recipient) {
+  if (message.trim() && currentRecipient) {
     socket.emit("private_message", {
-      recipient: recipient,
+      recipient: currentRecipient,
       message: message,
     });
     document.getElementById("message").value = "";

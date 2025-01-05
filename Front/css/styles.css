@@ -90,10 +90,58 @@ body {
     padding: 10px 15px;
     border-bottom: 1px solid #ddd;
     cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 #userList li:hover {
     background-color: var(--secondary-color);
+}
+
+#userList li.selected {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Añadir estos estilos */
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-online {
+  background-color: #2ecc71;
+}
+
+.status-offline {
+  background-color: #e74c3c;
+}
+
+.last-seen {
+  font-size: 12px;
+  color: #666;
+  margin-left: auto;
+}
+
+.status-legend {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+.status-legend span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 /* Área de mensajes */
@@ -187,6 +235,10 @@ button:hover {
 
   #userList {
     max-height: 200px;
+  }
+
+  #userList li {
+    padding: 15px;
   }
 
   .input-container {

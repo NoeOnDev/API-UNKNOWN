@@ -19,14 +19,15 @@
         <h3 id="userLabel"></h3>
         <div class="chat-container">
             <div class="users-section">
-                <h4>Connected Users:</h4>
+                <h4>Users:</h4>
+                <div class="status-legend">
+                    <span><span class="status-indicator status-online"></span> Online</span>
+                    <span><span class="status-indicator status-offline"></span> Offline</span>
+                </div>
                 <ul id="userList"></ul>
             </div>
             <div class="message-area">
                 <div class="input-container">
-                    <select id="recipient" title="Select a recipient">
-                        <option value="">Select a recipient</option>
-                    </select>
                     <input id="message" type="text" placeholder="Type your message">
                     <button onclick="sendPrivateMessage()">Send</button>
                 </div>

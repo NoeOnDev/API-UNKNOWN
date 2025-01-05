@@ -12,20 +12,36 @@ const io = new Server(httpServer, {
   },
 });
 
-const users = new Map();
+interface UserState {
+  username: string;
+  isOnline: boolean;
+  lastSeen?: Date;
+}
+
+const users = new Map<string, UserState>();
+const socketToUser = new Map<string, string>();
+
 const privateMessages = new Map();
 
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
 
   socket.on("join", (username) => {
-    users.set(socket.id, username);
-    io.emit("connected_users", Array.from(users.values()));
+    const existingUser = Array.from(users.values()).find(u => u.username === username);
+    if (existingUser) {
+      users.set(username, { ...existingUser, isOnline: true });
+    } else {
+      users.set(username, { username, isOnline: true });
+    }
+    
+    socketToUser.set(socket.id, username);
+    
+    io.emit("users_status", Array.from(users.values()));
     console.log(`${username} has joined the chat`);
   });
 
   socket.on("get_history", (otherUser) => {
-    const user = users.get(socket.id);
+    const user = socketToUser.get(socket.id);
     const chatId = [user, otherUser].sort().join("-");
     const history = privateMessages.get(chatId) || [];
     socket.emit("message_history", { recipient: otherUser, messages: history });
@@ -33,7 +49,7 @@ io.on("connection", (socket) => {
 
   socket.on("private_message", (data) => {
     const { recipient, message } = data;
-    const sender = users.get(socket.id);
+    const sender = socketToUser.get(socket.id);
     const chatId = [sender, recipient].sort().join("-");
 
     const completeMessage = {
@@ -47,7 +63,7 @@ io.on("connection", (socket) => {
     }
     privateMessages.get(chatId).push(completeMessage);
 
-    const recipientSocketId = Array.from(users.entries()).find(
+    const recipientSocketId = Array.from(socketToUser.entries()).find(
       ([_, username]) => username === recipient
     )?.[0];
 
@@ -61,9 +77,19 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    const username = users.get(socket.id);
-    users.delete(socket.id);
-    io.emit("connected_users", Array.from(users.values()));
+    const username = socketToUser.get(socket.id);
+    if (username) {
+      const user = users.get(username);
+      if (user) {
+        users.set(username, { 
+          ...user, 
+          isOnline: false,
+          lastSeen: new Date()
+        });
+      }
+      socketToUser.delete(socket.id);
+      io.emit("users_status", Array.from(users.values()));
+    }
     console.log(`${username} has disconnected`);
   });
 });
