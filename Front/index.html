@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Private Chat</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
@@ -27,11 +28,13 @@
                 <ul id="userList"></ul>
             </div>
             <div class="message-area">
+                <div id="messages"></div>
                 <div class="input-container">
                     <input id="message" type="text" placeholder="Type your message">
-                    <button onclick="sendPrivateMessage()">Send</button>
+                    <button title="hola" onclick="sendPrivateMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
-                <div id="messages"></div>
             </div>
         </div>
     </div>
