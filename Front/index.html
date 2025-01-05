@@ -28,10 +28,14 @@
                 <ul id="userList"></ul>
             </div>
             <div class="message-area">
+                <div class="chat-header">
+                    <h4 id="recipientName"></h4>
+                    <span id="recipientStatus" class="status-indicator"></span>
+                </div>
                 <div id="messages"></div>
                 <div class="input-container">
                     <input id="message" type="text" placeholder="Type your message">
-                    <button title="hola" onclick="sendPrivateMessage()">
+                    <button onclick="sendPrivateMessage()">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
