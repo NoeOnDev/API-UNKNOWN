@@ -258,19 +258,25 @@ button:hover {
 }
 
 /* Estilos de los mensajes */
+.message {
+  position: relative;
+  margin: 8px 0;
+  font-size: 15px;
+}
+
 .own-message,
 .other-message {
-  margin: 8px 0;
   padding: 10px 15px;
   border-radius: var(--border-radius);
-  width: 70%;
-  font-size: 15px;
+  width: fit-content;
+  max-width: 70%;
 }
 
 .own-message {
   background-color: var(--message-own-bg);
   color: var(--message-own-text);
   margin-left: auto;
+  border-radius: 15px 15px 5px 15px;
 }
 
 .other-message {
@@ -278,12 +284,45 @@ button:hover {
   color: var(--text-color);
   border: 1px solid var(--border-color);
   margin-right: auto;
+  border-radius: 15px 15px 15px 5px;
+}
+
+.message-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 4px;
+  min-height: 20px;
 }
 
 .message-time {
+  font-size: 11px;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+.message-status {
+  display: flex;
+  align-items: center;
   font-size: 12px;
-  color: #666;
-  margin-top: 4px;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+.message-status i {
+  margin-left: 3px;
+}
+
+.text-blue {
+  color: var(--primary-color);
+  opacity: 1;
+}
+
+/* Para mensajes muy cortos */
+.message p {
+  margin: 0;
+  word-break: break-word;
 }
 
 .chat-header {

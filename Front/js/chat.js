@@ -27,6 +27,26 @@ let username = "";
 let currentRecipient = "";
 const conversations = new Map();
 
+// Agregar objeto para almacenar estados de mensajes
+const messageStatuses = new Map();
+
+// Agregar después de las constantes existentes
+const messageAuditLog = new Map();
+
+function logMessageEvent(messageId, event, details = {}) {
+  if (!messageAuditLog.has(messageId)) {
+    messageAuditLog.set(messageId, []);
+  }
+  
+  messageAuditLog.get(messageId).push({
+    timestamp: new Date(),
+    event,
+    details
+  });
+  
+  console.log(`📝 Message ${messageId}: ${event}`, details);
+}
+
 function joinChat() {
   username = document.getElementById("username").value;
   if (username.trim()) {
@@ -49,15 +69,35 @@ function updateMessageView() {
   messagesDiv.innerHTML = messages
     .map(
       (m) => `
-            <p class="${
-              m.sender === username ? "own-message" : "other-message"
-            }">
-                ${m.message}
-            </p>
-        `
+        <div class="message">
+          <div class="${m.sender === username ? "own-message" : "other-message"}">
+            <p>${m.message}</p>
+          </div>
+          <div class="message-footer">
+            <span class="message-time">
+              ${new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+            ${m.sender === username ? `
+              <div class="message-status">
+                ${getMessageStatusIcon(m.id)}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `
     )
     .join("");
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function getMessageStatusIcon(messageId) {
+  const status = messageStatuses.get(messageId) || 'sent';
+  const icons = {
+    'sent': '<i class="fas fa-check" title="Enviado"></i>',
+    'delivered': '<i class="fas fa-check-double" title="Entregado"></i>',
+    'read': '<i class="fas fa-check-double text-blue" title="Leído"></i>'
+  };
+  return icons[status];
 }
 
 function updateRecipientHeader(user, usersList) {
@@ -150,30 +190,88 @@ socket.on("message_history", (data) => {
   }
 });
 
+// Agregar listener para estados de mensajes
+socket.on("message_status", ({ messageId, status }) => {
+  messageStatuses.set(messageId, status);
+  logMessageEvent(messageId, `Status changed to ${status}`);
+  updateMessageView();
+});
+
+// Modificar el evento de recepción de mensajes
 socket.on("private_message", (data) => {
   const otherUser = data.sender === username ? data.recipient : data.sender;
+  
+  logMessageEvent(data.id, "Message received", {
+    from: data.sender,
+    to: otherUser,
+    timestamp: data.timestamp
+  });
+
   if (!conversations.has(otherUser)) {
     conversations.set(otherUser, []);
   }
   conversations.get(otherUser).push(data);
+
+  // Si el mensaje es para mí y estoy viendo el chat, marcarlo como leído
+  if (data.sender !== username && otherUser === currentRecipient) {
+    socket.emit("message_read", { messageId: data.id, sender: data.sender });
+    logMessageEvent(data.id, "Marked as read");
+  }
 
   if (otherUser === currentRecipient) {
     updateMessageView();
   }
 });
 
+// Modificar sendPrivateMessage
 function sendPrivateMessage() {
   const message = document.getElementById("message").value;
 
   if (message.trim() && currentRecipient) {
-    socket.emit("private_message", {
+    const messageData = {
       recipient: currentRecipient,
       message: message,
-    });
+    };
+    
+    // Crear mensaje temporal local
+    const tempMessage = {
+      id: Date.now().toString(),
+      sender: username,
+      recipient: currentRecipient,
+      message: message,
+      timestamp: new Date(),
+      status: "sent"
+    };
+
+    // Agregar el mensaje a la conversación local
+    if (!conversations.has(currentRecipient)) {
+      conversations.set(currentRecipient, []);
+    }
+    conversations.get(currentRecipient).push(tempMessage);
+    
+    // Actualizar la vista inmediatamente
+    updateMessageView();
+    
+    console.log(`📤 Sending message to ${currentRecipient}:`, message);
+    socket.emit("private_message", messageData);
     document.getElementById("message").value = "";
+
+    // Hacer scroll al último mensaje
+    const messagesDiv = document.getElementById("messages");
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
 }
 
-document.getElementById("recipient").addEventListener("change", (e) => {
-  changeRecipient(e.target.value);
+// Agregar función para ver el audit trail de un mensaje
+function viewMessageAudit(messageId) {
+  socket.emit("get_message_audit", messageId);
+}
+
+socket.on("message_audit_data", (auditData) => {
+  console.group(`📊 Message Audit Trail`);
+  auditData.forEach(entry => {
+    console.log(`${entry.eventType.toUpperCase()} - ${new Date(entry.timestamp).toLocaleString()}`);
+    console.log(`From: ${entry.sender} To: ${entry.recipient}`);
+  });
+  console.groupEnd();
 });
