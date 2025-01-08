@@ -156,6 +156,10 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("get_users_status", () => {
+    io.emit("users_status", Array.from(users.values()));
+  });
+
   socket.on("disconnect", () => {
     const username = socketToUser.get(socket.id);
     if (username) {

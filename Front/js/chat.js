@@ -119,13 +119,34 @@ function updateRecipientHeader(user, usersList) {
   const statusIndicator = document.getElementById("recipientStatus");
 
   if (recipientInfo) {
-    headerName.textContent = recipientInfo.username;
-    statusIndicator.className = `status-indicator ${
-      recipientInfo.isOnline ? "status-online" : "status-offline"
-    }`;
-    statusIndicator.title = recipientInfo.isOnline
-      ? "Online"
-      : `Last seen: ${new Date(recipientInfo.lastSeen).toLocaleTimeString()}`;
+    const headerContainer = document.querySelector(".chat-header");
+    headerContainer.innerHTML = `
+      <div class="header-info">
+        <h4 id="recipientName">${recipientInfo.username}</h4>
+        <div class="status-container">
+          <span class="status-indicator ${
+            recipientInfo.isOnline ? "status-online" : "status-offline"
+          }"></span>
+          <span class="status-text">
+            ${
+              recipientInfo.isOnline
+                ? "Online"
+                : recipientInfo.lastSeen
+                ? `Last seen: ${new Date(recipientInfo.lastSeen).toLocaleString(
+                    [],
+                    {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      day: "2-digit",
+                      month: "short",
+                    }
+                  )}`
+                : "Offline"
+            }
+          </span>
+        </div>
+      </div>
+    `;
   }
 }
 
@@ -143,29 +164,21 @@ socket.on("users_status", (usersList) => {
   userList.innerHTML = sortedUsers
     .map(
       (user) => `
-            <li onclick="selectUser('${user.username}')" class="user-item">
-                <span class="status-indicator ${
-                  user.isOnline ? "status-online" : "status-offline"
-                }"></span>
-                <span>${user.username}</span>
-                ${
-                  !user.isOnline && user.lastSeen
-                    ? `
-                    <span class="last-seen">
-                        Last seen: ${new Date(
-                          user.lastSeen
-                        ).toLocaleTimeString()}
-                    </span>
-                `
-                    : ""
-                }
-            </li>
-        `
+      <li onclick="selectUser('${user.username}')" class="user-item">
+        <span class="status-indicator ${
+          user.isOnline ? "status-online" : "status-offline"
+        }"></span>
+        <span>${user.username}</span>
+      </li>
+    `
     )
     .join("");
 
   if (currentRecipient) {
-    updateRecipientHeader(currentRecipient, usersList);
+    const recipientInfo = usersList.find(u => u.username === currentRecipient);
+    if (recipientInfo) {
+      updateRecipientHeader(currentRecipient, usersList);
+    }
   }
 });
 
@@ -181,19 +194,7 @@ function selectUser(user) {
     }
   });
 
-  const usersList = Array.from(document.querySelectorAll("#userList li")).map(
-    (li) => ({
-      username: li.querySelector("span:nth-child(2)").textContent,
-      isOnline: li
-        .querySelector(".status-indicator")
-        .classList.contains("status-online"),
-      lastSeen: li
-        .querySelector(".last-seen")
-        ?.textContent.replace("Last seen: ", ""),
-    })
-  );
-
-  updateRecipientHeader(user, usersList);
+  socket.emit("get_users_status");
 }
 
 socket.on("message_history", (data) => {
@@ -282,4 +283,8 @@ socket.on("message_audit_data", (auditData) => {
     console.log(`From: ${entry.sender} To: ${entry.recipient}`);
   });
   console.groupEnd();
+});
+
+socket.on("get_users_status", () => {
+  io.emit("users_status", Array.from(users.values()));
 });
