@@ -27,15 +27,17 @@ io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
 
   socket.on("join", (username) => {
-    const existingUser = Array.from(users.values()).find(u => u.username === username);
+    const existingUser = Array.from(users.values()).find(
+      (u) => u.username === username
+    );
     if (existingUser) {
       users.set(username, { ...existingUser, isOnline: true });
     } else {
       users.set(username, { username, isOnline: true });
     }
-    
+
     socketToUser.set(socket.id, username);
-    
+
     io.emit("users_status", Array.from(users.values()));
     console.log(`${username} has joined the chat`);
   });
@@ -81,10 +83,10 @@ io.on("connection", (socket) => {
     if (username) {
       const user = users.get(username);
       if (user) {
-        users.set(username, { 
-          ...user, 
+        users.set(username, {
+          ...user,
           isOnline: false,
-          lastSeen: new Date()
+          lastSeen: new Date(),
         });
       }
       socketToUser.delete(socket.id);
