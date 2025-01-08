@@ -106,9 +106,9 @@ function updateMessageView() {
 function getMessageStatusIcon(messageId) {
   const status = messageStatuses.get(messageId) || "sent";
   const icons = {
-    sent: '<i class="fas fa-check" title="Enviado"></i>',
-    delivered: '<i class="fas fa-check-double" title="Entregado"></i>',
-    read: '<i class="fas fa-check-double text-blue" title="Leído"></i>',
+    sent: '<i class="fas fa-check" title="Send"></i>',
+    delivered: '<i class="fas fa-check-double" title="Delivered"></i>',
+    read: '<i class="fas fa-check-double text-blue" title="Read"></i>',
   };
   return icons[status];
 }
@@ -175,7 +175,9 @@ socket.on("users_status", (usersList) => {
     .join("");
 
   if (currentRecipient) {
-    const recipientInfo = usersList.find(u => u.username === currentRecipient);
+    const recipientInfo = usersList.find(
+      (u) => u.username === currentRecipient
+    );
     if (recipientInfo) {
       updateRecipientHeader(currentRecipient, usersList);
     }
@@ -199,6 +201,13 @@ function selectUser(user) {
 
 socket.on("message_history", (data) => {
   conversations.set(data.recipient, data.messages);
+
+  data.messages.forEach((message) => {
+    if (message.sender === username) {
+      messageStatuses.set(message.id, message.status);
+    }
+  });
+
   if (data.recipient === currentRecipient) {
     updateMessageView();
   }
@@ -207,7 +216,16 @@ socket.on("message_history", (data) => {
 socket.on("message_status", ({ messageId, status }) => {
   messageStatuses.set(messageId, status);
   logMessageEvent(messageId, `Status changed to ${status}`);
-  updateMessageView();
+
+  conversations.forEach((messages, recipient) => {
+    const message = messages.find((m) => m.id === messageId);
+    if (message) {
+      message.status = status;
+      if (recipient === currentRecipient) {
+        updateMessageView();
+      }
+    }
+  });
 });
 
 socket.on("private_message", (data) => {
@@ -227,6 +245,13 @@ socket.on("private_message", (data) => {
   if (data.sender !== username && otherUser === currentRecipient) {
     socket.emit("message_read", { messageId: data.id, sender: data.sender });
     logMessageEvent(data.id, "Marked as read");
+    messageStatuses.set(data.id, "read");
+  } else if (data.sender !== username) {
+    messageStatuses.set(data.id, "delivered");
+    socket.emit("message_delivered", {
+      messageId: data.id,
+      sender: data.sender,
+    });
   }
 
   if (otherUser === currentRecipient) {
@@ -238,19 +263,23 @@ function sendPrivateMessage() {
   const message = document.getElementById("message").value;
 
   if (message.trim() && currentRecipient) {
+    const messageId = Date.now().toString();
     const messageData = {
       recipient: currentRecipient,
       message: message,
+      messageId: messageId,
     };
 
     const tempMessage = {
-      id: Date.now().toString(),
+      id: messageId,
       sender: username,
       recipient: currentRecipient,
       message: message,
       timestamp: new Date(),
       status: "sent",
     };
+
+    messageStatuses.set(messageId, "sent");
 
     if (!conversations.has(currentRecipient)) {
       conversations.set(currentRecipient, []);
@@ -262,9 +291,6 @@ function sendPrivateMessage() {
     console.log(`📤 Sending message to ${currentRecipient}:`, message);
     socket.emit("private_message", messageData);
     document.getElementById("message").value = "";
-
-    const messagesDiv = document.getElementById("messages");
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
 }
 

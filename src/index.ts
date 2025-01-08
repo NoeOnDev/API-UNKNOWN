@@ -24,6 +24,7 @@ interface Message {
   message: string;
   timestamp: Date;
   status: "sent" | "delivered" | "read";
+  recipient: string;
 }
 
 interface MessageAudit {
@@ -55,6 +56,28 @@ io.on("connection", (socket) => {
 
     socketToUser.set(socket.id, username);
 
+    Array.from(privateMessages.entries()).forEach(([chatId, messages]) => {
+      const [user1, user2] = chatId.split("-");
+      if (user1 === username || user2 === username) {
+        messages.forEach((msg: Message) => {
+          if (msg.recipient === username && msg.status === "sent") {
+            msg.status = "delivered";
+
+            const senderSocketId = Array.from(socketToUser.entries()).find(
+              ([_, user]) => user === msg.sender
+            )?.[0];
+
+            if (senderSocketId) {
+              io.to(senderSocketId).emit("message_status", {
+                messageId: msg.id,
+                status: "delivered",
+              });
+            }
+          }
+        });
+      }
+    });
+
     io.emit("users_status", Array.from(users.values()));
     console.log(`👤 ${username} has joined the chat`);
   });
@@ -63,14 +86,34 @@ io.on("connection", (socket) => {
     const user = socketToUser.get(socket.id);
     const chatId = [user, otherUser].sort().join("-");
     const history = privateMessages.get(chatId) || [];
-    socket.emit("message_history", { recipient: otherUser, messages: history });
+
+    history.forEach((msg: Message) => {
+      if (msg.recipient === user && msg.status === "sent") {
+        msg.status = "delivered";
+
+        const senderSocketId = Array.from(socketToUser.entries()).find(
+          ([_, username]) => username === msg.sender
+        )?.[0];
+
+        if (senderSocketId) {
+          io.to(senderSocketId).emit("message_status", {
+            messageId: msg.id,
+            status: "delivered",
+          });
+        }
+      }
+    });
+
+    socket.emit("message_history", {
+      recipient: otherUser,
+      messages: history,
+    });
   });
 
   socket.on("private_message", (data) => {
-    const { recipient, message } = data;
+    const { recipient, message, messageId } = data;
     const sender = socketToUser.get(socket.id);
     const chatId = [sender, recipient].sort().join("-");
-    const messageId = Date.now().toString();
 
     console.log(`📨 New message from ${sender} to ${recipient}`);
 
@@ -80,41 +123,34 @@ io.on("connection", (socket) => {
       message: message,
       timestamp: new Date(),
       status: "sent",
+      recipient: recipient,
     };
 
     if (!privateMessages.has(chatId)) {
       privateMessages.set(chatId, []);
     }
+
     privateMessages.get(chatId).push(completeMessage);
 
-    const auditEntry: MessageAudit = {
-      messageId,
-      sender: sender as string,
-      recipient,
-      timestamp: new Date(),
-      eventType: "sent",
-    };
-
-    if (!messageAudit.has(messageId)) {
-      messageAudit.set(messageId, []);
-    }
-    messageAudit.get(messageId)?.push(auditEntry);
+    socket.emit("message_status", { messageId, status: "sent" });
 
     const recipientSocketId = Array.from(socketToUser.entries()).find(
       ([_, username]) => username === recipient
     )?.[0];
 
-    socket.emit("message_status", { messageId, status: "sent" });
-
     if (recipientSocketId) {
       io.to(recipientSocketId).emit("private_message", completeMessage);
+
+      completeMessage.status = "delivered";
       socket.emit("message_status", { messageId, status: "delivered" });
 
-      messageAudit.get(messageId)?.push({
-        ...auditEntry,
-        timestamp: new Date(),
-        eventType: "delivered",
-      });
+      const messages = privateMessages.get(chatId);
+      const messageIndex: number = messages.findIndex(
+        (m: Message) => m.id === messageId
+      );
+      if (messageIndex !== -1) {
+        messages[messageIndex] = completeMessage;
+      }
 
       console.log(`✔️ Message ${messageId} delivered to ${recipient}`);
     }
@@ -127,18 +163,18 @@ io.on("connection", (socket) => {
     )?.[0];
 
     const reader = socketToUser.get(socket.id);
+    const chatId = [sender, reader].sort().join("-");
 
     console.log(`👀 Message ${messageId} read by ${reader}`);
 
-    const auditEntry = messageAudit
-      .get(messageId)
-      ?.find((e) => e.eventType === "sent");
-    if (auditEntry) {
-      messageAudit.get(messageId)?.push({
-        ...auditEntry,
-        timestamp: new Date(),
-        eventType: "read",
-      });
+    const messages = privateMessages.get(chatId);
+    if (messages) {
+      const messageIndex: number = messages.findIndex(
+        (m: Message) => m.id === messageId
+      );
+      if (messageIndex !== -1) {
+        messages[messageIndex].status = "read";
+      }
     }
 
     if (senderSocketId) {
