@@ -261,21 +261,37 @@ button:hover {
 .message {
   position: relative;
   margin: 8px 0;
-  font-size: 15px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-container {
+  width: fit-content;
+  max-width: 70%;
+}
+
+.message-container.own {
+  margin-left: auto;
+}
+
+.message-container.other {
+  margin-right: auto;
 }
 
 .own-message,
 .other-message {
+  position: relative;
   padding: 10px 15px;
   border-radius: var(--border-radius);
-  width: fit-content;
-  max-width: 70%;
+  word-break: break-word;
+  display: flex;
+  flex-direction: column;
 }
 
 .own-message {
   background-color: var(--message-own-bg);
   color: var(--message-own-text);
-  margin-left: auto;
   border-radius: 15px 15px 5px 15px;
 }
 
@@ -283,46 +299,50 @@ button:hover {
   background-color: var(--message-other-bg);
   color: var(--text-color);
   border: 1px solid var(--border-color);
-  margin-right: auto;
   border-radius: 15px 15px 15px 5px;
+}
+
+.message-content {
+  margin-bottom: 4px;
 }
 
 .message-footer {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 5px;
-  margin-top: 4px;
-  min-height: 20px;
+  gap: 4px;
+  font-size: 11px;
+  margin-top: auto;
 }
 
 .message-time {
-  font-size: 11px;
   color: var(--text-color);
   opacity: 0.7;
+}
+
+.own-message .message-time {
+  color: var(--message-own-text);
+  opacity: 0.8;
 }
 
 .message-status {
   display: flex;
   align-items: center;
-  font-size: 12px;
-  color: var(--text-color);
-  opacity: 0.7;
 }
 
 .message-status i {
   margin-left: 3px;
+  font-size: 12px;
+}
+
+.own-message .message-status {
+  color: var(--message-own-text);
+  opacity: 0.8;
 }
 
 .text-blue {
   color: var(--primary-color);
   opacity: 1;
-}
-
-/* Para mensajes muy cortos */
-.message p {
-  margin: 0;
-  word-break: break-word;
 }
 
 .chat-header {
@@ -405,6 +425,10 @@ button:hover {
 @media screen and (max-width: 480px) {
   body {
     padding: 10px;
+  }
+
+  .message-container {
+    max-width: 85%;
   }
 
   #login {

@@ -27,23 +27,21 @@ let username = "";
 let currentRecipient = "";
 const conversations = new Map();
 
-// Agregar objeto para almacenar estados de mensajes
 const messageStatuses = new Map();
 
-// Agregar después de las constantes existentes
 const messageAuditLog = new Map();
 
 function logMessageEvent(messageId, event, details = {}) {
   if (!messageAuditLog.has(messageId)) {
     messageAuditLog.set(messageId, []);
   }
-  
+
   messageAuditLog.get(messageId).push({
     timestamp: new Date(),
     event,
-    details
+    details,
   });
-  
+
   console.log(`📝 Message ${messageId}: ${event}`, details);
 }
 
@@ -70,18 +68,33 @@ function updateMessageView() {
     .map(
       (m) => `
         <div class="message">
-          <div class="${m.sender === username ? "own-message" : "other-message"}">
-            <p>${m.message}</p>
-          </div>
-          <div class="message-footer">
-            <span class="message-time">
-              ${new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
-            ${m.sender === username ? `
-              <div class="message-status">
-                ${getMessageStatusIcon(m.id)}
+          <div class="message-container ${
+            m.sender === username ? "own" : "other"
+          }">
+            <div class="${
+              m.sender === username ? "own-message" : "other-message"
+            }">
+              <div class="message-content">
+                ${m.message}
               </div>
-            ` : ''}
+              <div class="message-footer">
+                <span class="message-time">
+                  ${new Date(m.timestamp).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+                ${
+                  m.sender === username
+                    ? `
+                  <span class="message-status">
+                    ${getMessageStatusIcon(m.id)}
+                  </span>
+                `
+                    : ""
+                }
+              </div>
+            </div>
           </div>
         </div>
       `
@@ -91,11 +104,11 @@ function updateMessageView() {
 }
 
 function getMessageStatusIcon(messageId) {
-  const status = messageStatuses.get(messageId) || 'sent';
+  const status = messageStatuses.get(messageId) || "sent";
   const icons = {
-    'sent': '<i class="fas fa-check" title="Enviado"></i>',
-    'delivered': '<i class="fas fa-check-double" title="Entregado"></i>',
-    'read': '<i class="fas fa-check-double text-blue" title="Leído"></i>'
+    sent: '<i class="fas fa-check" title="Enviado"></i>',
+    delivered: '<i class="fas fa-check-double" title="Entregado"></i>',
+    read: '<i class="fas fa-check-double text-blue" title="Leído"></i>',
   };
   return icons[status];
 }
@@ -190,21 +203,19 @@ socket.on("message_history", (data) => {
   }
 });
 
-// Agregar listener para estados de mensajes
 socket.on("message_status", ({ messageId, status }) => {
   messageStatuses.set(messageId, status);
   logMessageEvent(messageId, `Status changed to ${status}`);
   updateMessageView();
 });
 
-// Modificar el evento de recepción de mensajes
 socket.on("private_message", (data) => {
   const otherUser = data.sender === username ? data.recipient : data.sender;
-  
+
   logMessageEvent(data.id, "Message received", {
     from: data.sender,
     to: otherUser,
-    timestamp: data.timestamp
+    timestamp: data.timestamp,
   });
 
   if (!conversations.has(otherUser)) {
@@ -212,7 +223,6 @@ socket.on("private_message", (data) => {
   }
   conversations.get(otherUser).push(data);
 
-  // Si el mensaje es para mí y estoy viendo el chat, marcarlo como leído
   if (data.sender !== username && otherUser === currentRecipient) {
     socket.emit("message_read", { messageId: data.id, sender: data.sender });
     logMessageEvent(data.id, "Marked as read");
@@ -223,7 +233,6 @@ socket.on("private_message", (data) => {
   }
 });
 
-// Modificar sendPrivateMessage
 function sendPrivateMessage() {
   const message = document.getElementById("message").value;
 
@@ -232,45 +241,44 @@ function sendPrivateMessage() {
       recipient: currentRecipient,
       message: message,
     };
-    
-    // Crear mensaje temporal local
+
     const tempMessage = {
       id: Date.now().toString(),
       sender: username,
       recipient: currentRecipient,
       message: message,
       timestamp: new Date(),
-      status: "sent"
+      status: "sent",
     };
 
-    // Agregar el mensaje a la conversación local
     if (!conversations.has(currentRecipient)) {
       conversations.set(currentRecipient, []);
     }
     conversations.get(currentRecipient).push(tempMessage);
-    
-    // Actualizar la vista inmediatamente
+
     updateMessageView();
-    
+
     console.log(`📤 Sending message to ${currentRecipient}:`, message);
     socket.emit("private_message", messageData);
     document.getElementById("message").value = "";
 
-    // Hacer scroll al último mensaje
     const messagesDiv = document.getElementById("messages");
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
 }
 
-// Agregar función para ver el audit trail de un mensaje
 function viewMessageAudit(messageId) {
   socket.emit("get_message_audit", messageId);
 }
 
 socket.on("message_audit_data", (auditData) => {
   console.group(`📊 Message Audit Trail`);
-  auditData.forEach(entry => {
-    console.log(`${entry.eventType.toUpperCase()} - ${new Date(entry.timestamp).toLocaleString()}`);
+  auditData.forEach((entry) => {
+    console.log(
+      `${entry.eventType.toUpperCase()} - ${new Date(
+        entry.timestamp
+      ).toLocaleString()}`
+    );
     console.log(`From: ${entry.sender} To: ${entry.recipient}`);
   });
   console.groupEnd();
