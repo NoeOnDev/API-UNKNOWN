@@ -1,26 +1,61 @@
-const currentTheme = localStorage.getItem("theme") || "light";
-document.documentElement.setAttribute("data-theme", currentTheme);
-updateThemeIcon(currentTheme);
+document.addEventListener("DOMContentLoaded", () => {
+  const settingsIcon = document.getElementById("settings-icon");
+  const settingsMenu = document.querySelector(".settings-menu");
 
-function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute("data-theme");
-  const newTheme = currentTheme === "light" ? "dark" : "light";
+  settingsIcon.addEventListener("click", (e) => {
+    e.stopPropagation();
+    settingsMenu.classList.toggle("active");
+    updateThemeCheckmarks();
+  });
 
-  document.documentElement.setAttribute("data-theme", newTheme);
-  localStorage.setItem("theme", newTheme);
-  updateThemeIcon(newTheme);
+  document.addEventListener("click", (e) => {
+    if (!settingsMenu.contains(e.target) && !settingsIcon.contains(e.target)) {
+      settingsMenu.classList.remove("active");
+    }
+  });
+
+  initializeTheme();
+});
+
+function initializeTheme() {
+  const savedTheme = localStorage.getItem("theme") || "system";
+  changeTheme(savedTheme);
 }
 
-function updateThemeIcon(theme) {
-  const icon = document.getElementById("theme-icon");
-  if (theme === "dark") {
-    icon.classList.remove("fa-moon");
-    icon.classList.add("fa-sun");
+function changeTheme(theme) {
+  localStorage.setItem("theme", theme);
+
+  if (theme === "system") {
+    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+      .matches
+      ? "dark"
+      : "light";
+    document.documentElement.setAttribute("data-theme", systemTheme);
   } else {
-    icon.classList.remove("fa-sun");
-    icon.classList.add("fa-moon");
+    document.documentElement.setAttribute("data-theme", theme);
   }
+
+  updateThemeCheckmarks();
 }
+
+function updateThemeCheckmarks() {
+  const currentTheme = localStorage.getItem("theme") || "system";
+  const checks = document.querySelectorAll(".check-icon");
+
+  checks.forEach((check) => check.classList.remove("active"));
+  document.getElementById(`${currentTheme}-check`).classList.add("active");
+}
+
+window
+  .matchMedia("(prefers-color-scheme: dark)")
+  .addEventListener("change", (e) => {
+    if (localStorage.getItem("theme") === "system") {
+      document.documentElement.setAttribute(
+        "data-theme",
+        e.matches ? "dark" : "light"
+      );
+    }
+  });
 
 const socket = io("http://localhost:3001");
 let username = "";
@@ -164,13 +199,16 @@ socket.on("users_status", (usersList) => {
   userList.innerHTML = sortedUsers
     .map(
       (user) => `
-      <li onclick="selectUser('${user.username}')" class="user-item">
-        <span class="status-indicator ${
-          user.isOnline ? "status-online" : "status-offline"
-        }"></span>
-        <span>${user.username}</span>
-      </li>
-    `
+            <li onclick="selectUser('${user.username}')" 
+                class="user-item ${
+                  user.username === currentRecipient ? "selected" : ""
+                }">
+                <span class="status-indicator ${
+                  user.isOnline ? "status-online" : "status-offline"
+                }"></span>
+                <span>${user.username}</span>
+            </li>
+        `
     )
     .join("");
 
@@ -184,12 +222,28 @@ socket.on("users_status", (usersList) => {
   }
 });
 
+function markMessagesAsRead(messages) {
+  const unreadMessages = messages.filter(
+    (msg) => msg.sender !== username && msg.status !== "read"
+  );
+
+  if (unreadMessages.length > 0) {
+    unreadMessages.forEach((msg) => {
+      socket.emit("message_read", {
+        messageId: msg.id,
+        sender: msg.sender,
+      });
+      messageStatuses.set(msg.id, "read");
+    });
+  }
+}
+
 function selectUser(user) {
   currentRecipient = user;
   socket.emit("get_history", user);
   updateMessageView();
 
-  document.querySelectorAll("#userList li").forEach((li) => {
+  document.querySelectorAll(".user-item").forEach((li) => {
     li.classList.remove("selected");
     if (li.querySelector("span:nth-child(2)").textContent === user) {
       li.classList.add("selected");
@@ -209,6 +263,7 @@ socket.on("message_history", (data) => {
   });
 
   if (data.recipient === currentRecipient) {
+    markMessagesAsRead(data.messages);
     updateMessageView();
   }
 });

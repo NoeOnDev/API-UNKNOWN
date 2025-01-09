@@ -90,23 +90,22 @@ io.on("connection", (socket) => {
     history.forEach((msg: Message) => {
       if (msg.recipient === user && msg.status === "sent") {
         msg.status = "delivered";
-
-        const senderSocketId = Array.from(socketToUser.entries()).find(
-          ([_, username]) => username === msg.sender
-        )?.[0];
-
+        
+        const senderSocketId = Array.from(socketToUser.entries())
+          .find(([_, username]) => username === msg.sender)?.[0];
+        
         if (senderSocketId) {
           io.to(senderSocketId).emit("message_status", {
             messageId: msg.id,
-            status: "delivered",
+            status: "delivered"
           });
         }
       }
     });
 
-    socket.emit("message_history", {
-      recipient: otherUser,
-      messages: history,
+    socket.emit("message_history", { 
+      recipient: otherUser, 
+      messages: history
     });
   });
 
@@ -158,10 +157,6 @@ io.on("connection", (socket) => {
 
   socket.on("message_read", (data) => {
     const { messageId, sender } = data;
-    const senderSocketId = Array.from(socketToUser.entries()).find(
-      ([_, username]) => username === sender
-    )?.[0];
-
     const reader = socketToUser.get(socket.id);
     const chatId = [sender, reader].sort().join("-");
 
@@ -169,19 +164,20 @@ io.on("connection", (socket) => {
 
     const messages = privateMessages.get(chatId);
     if (messages) {
-      const messageIndex: number = messages.findIndex(
-        (m: Message) => m.id === messageId
-      );
+      const messageIndex = messages.findIndex((m: Message) => m.id === messageId);
       if (messageIndex !== -1) {
         messages[messageIndex].status = "read";
-      }
-    }
+        
+        const senderSocketId = Array.from(socketToUser.entries())
+          .find(([_, username]) => username === sender)?.[0];
 
-    if (senderSocketId) {
-      io.to(senderSocketId).emit("message_status", {
-        messageId,
-        status: "read",
-      });
+        if (senderSocketId) {
+          io.to(senderSocketId).emit("message_status", {
+            messageId,
+            status: "read"
+          });
+        }
+      }
     }
   });
 

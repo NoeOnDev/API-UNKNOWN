@@ -11,18 +11,47 @@
 </head>
 
 <body>
-    <div class="theme-switch" onclick="toggleTheme()">
-        <i class="fas fa-moon" id="theme-icon"></i>
-    </div>
     <div id="login">
         <input id="username" type="text" placeholder="Enter your name">
         <button onclick="joinChat()">Join Chat</button>
     </div>
 
     <div id="chat">
-        <h3 id="userLabel"></h3>
         <div class="chat-container">
             <div class="users-section">
+                <div class="users-header">
+                    <h3 id="userLabel"></h3>
+                    <div class="settings-button">
+                        <i class="fas fa-cog" id="settings-icon"></i>
+                        <div class="settings-menu">
+                            <div class="settings-header">
+                                <h4>Settings</h4>
+                            </div>
+                            <div class="settings-content">
+                                <div class="settings-section">
+                                    <h5>Theme</h5>
+                                    <div class="theme-options">
+                                        <div class="theme-option" onclick="changeTheme('light')">
+                                            <i class="fas fa-sun"></i>
+                                            <span>Light</span>
+                                            <i class="fas fa-check check-icon" id="light-check"></i>
+                                        </div>
+                                        <div class="theme-option" onclick="changeTheme('dark')">
+                                            <i class="fas fa-moon"></i>
+                                            <span>Dark</span>
+                                            <i class="fas fa-check check-icon" id="dark-check"></i>
+                                        </div>
+                                        <div class="theme-option" onclick="changeTheme('system')">
+                                            <i class="fas fa-desktop"></i>
+                                            <span>System</span>
+                                            <i class="fas fa-check check-icon" id="system-check"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <h4>Users:</h4>
                 <div class="status-legend">
                     <span><span class="status-indicator status-online"></span> Online</span>
