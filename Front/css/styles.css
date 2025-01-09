@@ -30,16 +30,13 @@
   --status-read-color: #00ff88;
 }
 
-/* Modificar los estilos base */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--background-color);
   margin: 0;
   padding: 0;
-  /* Quitar el padding */
   color: var(--text-color);
   height: 100vh;
-  /* Usar toda la altura de la ventana */
   display: flex;
   flex-direction: column;
 }
@@ -206,6 +203,71 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
+}
+
+/* Estilos para los items de usuario */
+.user-item {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.user-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+}
+
+.username {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.last-message {
+  font-size: 13px;
+  color: var(--text-color);
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: 20px;
+}
+
+.last-message.empty {
+  font-style: italic;
+  opacity: 0.5;
+}
+
+/* Ajustar estilos cuando está seleccionado */
+.user-item.selected {
+  background-color: var(--primary-color);
+}
+
+.user-item.selected .username,
+.user-item.selected .last-message {
+  color: white;
+}
+
+.user-item.selected .unread-counter {
+  background-color: white;
+  color: var(--primary-color);
+}
+
+.user-item:hover {
+  background-color: var(--secondary-color);
+}
+
+.user-item.selected:hover {
+  background-color: var(--primary-color);
 }
 
 /* Ajustar el área de mensajes */
@@ -419,6 +481,22 @@ button:hover {
   opacity: 0.7;
 }
 
+/* Estilos para el contador de mensajes no leídos */
+.unread-counter {
+  background-color: #ff3b30;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  margin-left: auto;
+}
+
 /* Tablets y pantallas medianas */
 @media screen and (max-width: 768px) {
   #chat {
@@ -475,6 +553,10 @@ button:hover {
 
   #userLabel {
     font-size: 20px;
+  }
+
+  .last-message {
+    font-size: 12px;
   }
 }
 

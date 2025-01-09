@@ -197,28 +197,51 @@ socket.on("users_status", (usersList) => {
   });
 
   userList.innerHTML = sortedUsers
-    .map(
-      (user) => `
-            <li onclick="selectUser('${user.username}')" 
-                class="user-item ${
-                  user.username === currentRecipient ? "selected" : ""
-                }">
-                <span class="status-indicator ${
-                  user.isOnline ? "status-online" : "status-offline"
-                }"></span>
-                <span>${user.username}</span>
-            </li>
-        `
-    )
+    .map((user) => {
+      const conversation = conversations.get(user.username) || [];
+      const lastMessage = conversation[conversation.length - 1];
+
+      const unreadCount = conversation.filter(
+        (msg) => msg.sender !== username && msg.status !== "read"
+      ).length;
+
+      const unreadCounter =
+        unreadCount > 0
+          ? `<span class="unread-counter">${unreadCount}</span>`
+          : "";
+
+      const lastMessageText = lastMessage
+        ? `<div class="last-message">
+              ${
+                lastMessage.sender === username ? "You: " : ""
+              }${lastMessage.message.substring(0, 30)}${
+            lastMessage.message.length > 30 ? "..." : ""
+          }
+          </div>`
+        : '<div class="last-message empty">No messages yet</div>';
+
+      return `
+          <li onclick="selectUser('${user.username}')" 
+              class="user-item ${
+                user.username === currentRecipient ? "selected" : ""
+              }">
+              <div class="user-info">
+                <div class="user-header">
+                  <span class="status-indicator ${
+                    user.isOnline ? "status-online" : "status-offline"
+                  }"></span>
+                  <span class="username">${user.username}</span>
+                  ${unreadCounter}
+                </div>
+                ${lastMessageText}
+              </div>
+          </li>
+        `;
+    })
     .join("");
 
   if (currentRecipient) {
-    const recipientInfo = usersList.find(
-      (u) => u.username === currentRecipient
-    );
-    if (recipientInfo) {
-      updateRecipientHeader(currentRecipient, usersList);
-    }
+    updateRecipientHeader(currentRecipient, usersList);
   }
 });
 
@@ -235,6 +258,8 @@ function markMessagesAsRead(messages) {
       });
       messageStatuses.set(msg.id, "read");
     });
+
+    socket.emit("get_users_status");
   }
 }
 
@@ -286,30 +311,19 @@ socket.on("message_status", ({ messageId, status }) => {
 socket.on("private_message", (data) => {
   const otherUser = data.sender === username ? data.recipient : data.sender;
 
-  logMessageEvent(data.id, "Message received", {
-    from: data.sender,
-    to: otherUser,
-    timestamp: data.timestamp,
-  });
-
   if (!conversations.has(otherUser)) {
     conversations.set(otherUser, []);
   }
   conversations.get(otherUser).push(data);
 
-  if (data.sender !== username && otherUser === currentRecipient) {
-    socket.emit("message_read", { messageId: data.id, sender: data.sender });
-    logMessageEvent(data.id, "Marked as read");
-    messageStatuses.set(data.id, "read");
-  } else if (data.sender !== username) {
+  if (data.sender !== username && otherUser !== currentRecipient) {
     messageStatuses.set(data.id, "delivered");
-    socket.emit("message_delivered", {
-      messageId: data.id,
-      sender: data.sender,
-    });
   }
 
+  socket.emit("get_users_status");
+
   if (otherUser === currentRecipient) {
+    markMessagesAsRead([data]);
     updateMessageView();
   }
 });
