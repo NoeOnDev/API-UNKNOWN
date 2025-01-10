@@ -87,8 +87,30 @@ function joinChat() {
     document.getElementById("login").style.display = "none";
     document.getElementById("chat").style.display = "block";
     document.getElementById("userLabel").textContent = `Chat as: ${username}`;
+
+    loadAllChatHistories();
   }
 }
+
+function loadAllChatHistories() {
+  socket.emit("get_all_histories", username);
+}
+
+socket.on("all_chat_histories", (allHistories) => {
+  conversations.clear();
+
+  allHistories.forEach(({ recipient, messages }) => {
+    conversations.set(recipient, messages);
+
+    messages.forEach((message) => {
+      if (message.sender === username) {
+        messageStatuses.set(message.id, message.status);
+      }
+    });
+  });
+
+  socket.emit("get_users_status");
+});
 
 function changeRecipient(newRecipient) {
   currentRecipient = newRecipient;
@@ -201,24 +223,37 @@ socket.on("users_status", (usersList) => {
       const conversation = conversations.get(user.username) || [];
       const lastMessage = conversation[conversation.length - 1];
 
-      const unreadCount = conversation.filter(
-        (msg) => msg.sender !== username && msg.status !== "read"
-      ).length;
+      const unreadCount =
+        user.username !== currentRecipient
+          ? conversation.filter(
+              (msg) => msg.sender !== username && msg.status !== "read"
+            ).length
+          : 0;
 
       const unreadCounter =
         unreadCount > 0
           ? `<span class="unread-counter">${unreadCount}</span>`
           : "";
 
-      const lastMessageText = lastMessage
-        ? `<div class="last-message">
+      const timeString = lastMessage
+        ? formatMessageTime(lastMessage.timestamp)
+        : "";
+
+      const lastMessageContainer = lastMessage
+        ? `<div class="last-message-container">
+            <div class="last-message">
               ${
                 lastMessage.sender === username ? "You: " : ""
               }${lastMessage.message.substring(0, 30)}${
             lastMessage.message.length > 30 ? "..." : ""
           }
+            </div>
+            ${unreadCounter}
           </div>`
-        : '<div class="last-message empty">No messages yet</div>';
+        : `<div class="last-message-container">
+            <div class="last-message empty">No messages yet</div>
+            ${unreadCounter}
+          </div>`;
 
       return `
           <li onclick="selectUser('${user.username}')" 
@@ -227,13 +262,19 @@ socket.on("users_status", (usersList) => {
               }">
               <div class="user-info">
                 <div class="user-header">
-                  <span class="status-indicator ${
-                    user.isOnline ? "status-online" : "status-offline"
-                  }"></span>
-                  <span class="username">${user.username}</span>
-                  ${unreadCounter}
+                  <div class="user-header-left">
+                    <span class="status-indicator ${
+                      user.isOnline ? "status-online" : "status-offline"
+                    }"></span>
+                    <span class="username">${user.username}</span>
+                  </div>
+                  ${
+                    timeString
+                      ? `<span class="last-message-time">${timeString}</span>`
+                      : ""
+                  }
                 </div>
-                ${lastMessageText}
+                ${lastMessageContainer}
               </div>
           </li>
         `;
@@ -244,6 +285,30 @@ socket.on("users_status", (usersList) => {
     updateRecipientHeader(currentRecipient, usersList);
   }
 });
+
+function formatMessageTime(timestamp) {
+  const messageDate = new Date(timestamp);
+  const now = new Date();
+  const diffDays = Math.floor((now - messageDate) / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    return messageDate.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } else if (diffDays === 1) {
+    return "Yesterday";
+  } else if (diffDays < 7) {
+    return messageDate.toLocaleDateString([], {
+      weekday: "short",
+    });
+  } else {
+    return messageDate.toLocaleDateString([], {
+      day: "2-digit",
+      month: "short",
+    });
+  }
+}
 
 function markMessagesAsRead(messages) {
   const unreadMessages = messages.filter(
@@ -257,6 +322,12 @@ function markMessagesAsRead(messages) {
         sender: msg.sender,
       });
       messageStatuses.set(msg.id, "read");
+
+      const conversation = conversations.get(currentRecipient);
+      const messageIndex = conversation.findIndex((m) => m.id === msg.id);
+      if (messageIndex !== -1) {
+        conversation[messageIndex].status = "read";
+      }
     });
 
     socket.emit("get_users_status");

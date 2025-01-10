@@ -90,22 +90,23 @@ io.on("connection", (socket) => {
     history.forEach((msg: Message) => {
       if (msg.recipient === user && msg.status === "sent") {
         msg.status = "delivered";
-        
-        const senderSocketId = Array.from(socketToUser.entries())
-          .find(([_, username]) => username === msg.sender)?.[0];
-        
+
+        const senderSocketId = Array.from(socketToUser.entries()).find(
+          ([_, username]) => username === msg.sender
+        )?.[0];
+
         if (senderSocketId) {
           io.to(senderSocketId).emit("message_status", {
             messageId: msg.id,
-            status: "delivered"
+            status: "delivered",
           });
         }
       }
     });
 
-    socket.emit("message_history", { 
-      recipient: otherUser, 
-      messages: history
+    socket.emit("message_history", {
+      recipient: otherUser,
+      messages: history,
     });
   });
 
@@ -164,17 +165,20 @@ io.on("connection", (socket) => {
 
     const messages = privateMessages.get(chatId);
     if (messages) {
-      const messageIndex = messages.findIndex((m: Message) => m.id === messageId);
+      const messageIndex = messages.findIndex(
+        (m: Message) => m.id === messageId
+      );
       if (messageIndex !== -1) {
         messages[messageIndex].status = "read";
-        
-        const senderSocketId = Array.from(socketToUser.entries())
-          .find(([_, username]) => username === sender)?.[0];
+
+        const senderSocketId = Array.from(socketToUser.entries()).find(
+          ([_, username]) => username === sender
+        )?.[0];
 
         if (senderSocketId) {
           io.to(senderSocketId).emit("message_status", {
             messageId,
-            status: "read"
+            status: "read",
           });
         }
       }
@@ -190,6 +194,23 @@ io.on("connection", (socket) => {
 
   socket.on("get_users_status", () => {
     io.emit("users_status", Array.from(users.values()));
+  });
+
+  socket.on("get_all_histories", (username: string) => {
+    const allHistories: { recipient: string; messages: Message[] }[] = [];
+
+    Array.from(privateMessages.entries()).forEach(([chatId, messages]) => {
+      const [user1, user2] = chatId.split("-");
+      if (user1 === username || user2 === username) {
+        const otherUser = user1 === username ? user2 : user1;
+        allHistories.push({
+          recipient: otherUser,
+          messages: messages,
+        });
+      }
+    });
+
+    socket.emit("all_chat_histories", allHistories);
   });
 
   socket.on("disconnect", () => {

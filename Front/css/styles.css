@@ -223,6 +223,35 @@ body {
 .user-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 10px;
+}
+
+.user-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.last-message-time {
+  font-size: 11px;
+  color: var(--text-color);
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+/* Ajustar estilos cuando está seleccionado */
+.user-item.selected .last-message-time {
+  color: white;
+  opacity: 0.8;
+}
+
+.user-header {
+  display: flex;
+  align-items: center;
   width: 100%;
   gap: 10px;
 }
@@ -232,6 +261,15 @@ body {
   color: var(--text-color);
 }
 
+.last-message-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-left: 20px;
+  width: calc(100% - 20px);
+}
+
 .last-message {
   font-size: 13px;
   color: var(--text-color);
@@ -239,7 +277,8 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-left: 20px;
+  margin-left: 0;
+  flex: 1;
 }
 
 .last-message.empty {
@@ -260,6 +299,10 @@ body {
 .user-item.selected .unread-counter {
   background-color: white;
   color: var(--primary-color);
+}
+
+.user-item.selected .last-message-container .last-message {
+  color: white;
 }
 
 .user-item:hover {
@@ -493,12 +536,11 @@ button:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 4px;
-  margin-left: auto;
+  flex-shrink: 0;
 }
 
 /* Tablets y pantallas medianas */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 665px) {
   #chat {
     padding: 10px;
     height: 100vh;
@@ -564,6 +606,10 @@ button:hover {
 @media screen and (max-width: 480px) {
   body {
     padding: 10px;
+  }
+
+  .chat-container {
+    height: calc(100vh - 30px);
   }
 
   .message-container {
