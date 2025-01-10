@@ -242,11 +242,14 @@ socket.on("users_status", (usersList) => {
       const lastMessageContainer = lastMessage
         ? `<div class="last-message-container">
             <div class="last-message">
-              ${
-                lastMessage.sender === username ? "You: " : ""
-              }${lastMessage.message.substring(0, 30)}${
-            lastMessage.message.length > 30 ? "..." : ""
-          }
+              ${lastMessage.sender === username ? `
+                <span class="last-message-status">
+                  ${getMessageStatusIcon(lastMessage.id)}
+                </span>
+              ` : ''}
+              ${lastMessage.sender === username ? "" : ""}${lastMessage.message.substring(0, 30)}${
+              lastMessage.message.length > 30 ? "..." : ""
+            }
             </div>
             ${unreadCounter}
           </div>`
