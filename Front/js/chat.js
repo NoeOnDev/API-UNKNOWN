@@ -66,6 +66,10 @@ const messageStatuses = new Map();
 
 const messageAuditLog = new Map();
 
+let typingTimeout = null;
+
+const users = new Map();
+
 function logMessageEvent(messageId, event, details = {}) {
   if (!messageAuditLog.has(messageId)) {
     messageAuditLog.set(messageId, []);
@@ -208,6 +212,10 @@ function updateRecipientHeader(user, usersList) {
 }
 
 socket.on("users_status", (usersList) => {
+  usersList.forEach((user) => {
+    users.set(user.username, user);
+  });
+
   const userList = document.getElementById("userList");
   const otherUsers = usersList.filter((user) => user.username !== username);
 
@@ -443,6 +451,27 @@ function sendPrivateMessage() {
   }
 }
 
+function handleTyping() {
+  if (currentRecipient) {
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
+
+    const messageInput = document.getElementById("message");
+    if (messageInput.value.trim()) {
+      socket.emit("typing", { recipient: currentRecipient });
+
+      typingTimeout = setTimeout(() => {
+        socket.emit("stop_typing", { recipient: currentRecipient });
+      }, 2000);
+    } else {
+      socket.emit("stop_typing", { recipient: currentRecipient });
+    }
+  }
+}
+
+document.getElementById("message").addEventListener("input", handleTyping);
+
 function viewMessageAudit(messageId) {
   socket.emit("get_message_audit", messageId);
 }
@@ -462,4 +491,38 @@ socket.on("message_audit_data", (auditData) => {
 
 socket.on("get_users_status", () => {
   io.emit("users_status", Array.from(users.values()));
+});
+
+socket.on("user_typing", (data) => {
+  if (data.sender === currentRecipient) {
+    const statusText = document.querySelector(".status-text");
+    if (statusText && !statusText.classList.contains("typing")) {
+      statusText.innerHTML = `typing<div class="typing-dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>`;
+      statusText.classList.add("typing");
+    }
+  }
+});
+
+socket.on("user_stop_typing", (data) => {
+  if (data.sender === currentRecipient) {
+    const statusText = document.querySelector(".status-text");
+    if (statusText) {
+      const recipientInfo = users.get(currentRecipient);
+      statusText.textContent = recipientInfo?.isOnline ? "Online" : "Offline";
+      statusText.classList.remove("typing");
+    }
+  }
+});
+
+document.getElementById("message").addEventListener("keyup", (e) => {
+  if (!e.target.value.trim()) {
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
+    socket.emit("stop_typing", { recipient: currentRecipient });
+  }
 });

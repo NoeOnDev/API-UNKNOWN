@@ -213,6 +213,32 @@ io.on("connection", (socket) => {
     socket.emit("all_chat_histories", allHistories);
   });
 
+  socket.on("typing", (data) => {
+    const sender = socketToUser.get(socket.id);
+    if (sender && data.recipient) {
+      const recipientSocketId = Array.from(socketToUser.entries()).find(
+        ([_, username]) => username === data.recipient
+      )?.[0];
+
+      if (recipientSocketId) {
+        io.to(recipientSocketId).emit("user_typing", { sender });
+      }
+    }
+  });
+
+  socket.on("stop_typing", (data) => {
+    const sender = socketToUser.get(socket.id);
+    if (sender && data.recipient) {
+      const recipientSocketId = Array.from(socketToUser.entries()).find(
+        ([_, username]) => username === data.recipient
+      )?.[0];
+
+      if (recipientSocketId) {
+        io.to(recipientSocketId).emit("user_stop_typing", { sender });
+      }
+    }
+  });
+
   socket.on("disconnect", () => {
     const username = socketToUser.get(socket.id);
     if (username) {
