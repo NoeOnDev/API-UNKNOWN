@@ -874,6 +874,7 @@ button:hover {
 .typing-dots {
   display: inline-flex;
   margin-left: 2px;
+  align-items: center;
 }
 
 .typing-dots span {
@@ -882,6 +883,7 @@ button:hover {
   border-radius: 50%;
   background-color: var(--primary-color);
   opacity: 0.6;
+  will-change: transform, opacity;
 }
 
 .typing-dots span:nth-child(1) {
@@ -897,15 +899,22 @@ button:hover {
 }
 
 @keyframes typingDot {
-
-  0%,
-  100% {
+  0%, 100% {
     transform: translateY(0);
     opacity: 0.6;
   }
-
   50% {
     transform: translateY(-2px);
     opacity: 1;
   }
+}
+
+.status-text.typing .typing-dots span,
+.last-message.typing .typing-dots span {
+  background-color: var(--primary-color);
+}
+
+.user-item.selected .last-message.typing .typing-dots span,
+.user-item.selected .status-text.typing .typing-dots span {
+  background-color: white;
 }

@@ -70,6 +70,8 @@ let typingTimeout = null;
 
 const users = new Map();
 
+const typingUsers = new Map();
+
 function logMessageEvent(messageId, event, details = {}) {
   if (!messageAuditLog.has(messageId)) {
     messageAuditLog.set(messageId, []);
@@ -176,11 +178,11 @@ function getMessageStatusIcon(messageId) {
 
 function updateRecipientHeader(user, usersList) {
   const recipientInfo = usersList.find((u) => u.username === user);
-  const headerName = document.getElementById("recipientName");
-  const statusIndicator = document.getElementById("recipientStatus");
 
   if (recipientInfo) {
     const headerContainer = document.querySelector(".chat-header");
+    const isTyping = typingUsers.has(user);
+
     headerContainer.innerHTML = `
       <div class="header-info">
         <h4 id="recipientName">${recipientInfo.username}</h4>
@@ -188,9 +190,15 @@ function updateRecipientHeader(user, usersList) {
           <span class="status-indicator ${
             recipientInfo.isOnline ? "status-online" : "status-offline"
           }"></span>
-          <span class="status-text">
+          <span class="status-text ${isTyping ? "typing" : ""}">
             ${
-              recipientInfo.isOnline
+              isTyping
+                ? `typing<div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                   </div>`
+                : recipientInfo.isOnline
                 ? "Online"
                 : recipientInfo.lastSeen
                 ? `Last seen: ${new Date(recipientInfo.lastSeen).toLocaleString(
@@ -230,6 +238,7 @@ socket.on("users_status", (usersList) => {
     .map((user) => {
       const conversation = conversations.get(user.username) || [];
       const lastMessage = conversation[conversation.length - 1];
+      const isTyping = typingUsers.has(user.username);
 
       const unreadCount =
         user.username !== currentRecipient
@@ -247,21 +256,28 @@ socket.on("users_status", (usersList) => {
         ? formatMessageTime(lastMessage.timestamp)
         : "";
 
-      const lastMessageContainer = lastMessage
+      const lastMessageContainer = isTyping
+        ? `<div class="last-message-container">
+            <div class="last-message typing" data-typing="${user.username}">
+              typing<div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+            ${unreadCounter}
+          </div>`
+        : lastMessage
         ? `<div class="last-message-container">
             <div class="last-message">
               ${
                 lastMessage.sender === username
-                  ? `
-                <span class="last-message-status">
-                  ${getMessageStatusIcon(lastMessage.id)}
-                </span>
-              `
+                  ? `<span class="last-message-status">
+                      ${getMessageStatusIcon(lastMessage.id)}
+                    </span>`
                   : ""
               }
-              ${
-                lastMessage.sender === username ? "" : ""
-              }${lastMessage.message.substring(0, 30)}${
+              ${lastMessage.message.substring(0, 30)}${
             lastMessage.message.length > 30 ? "..." : ""
           }
             </div>
@@ -494,29 +510,61 @@ socket.on("get_users_status", () => {
 });
 
 socket.on("user_typing", (data) => {
+  updateTypingStatus(data.sender, true);
   if (data.sender === currentRecipient) {
-    const statusText = document.querySelector(".status-text");
-    if (statusText && !statusText.classList.contains("typing")) {
-      statusText.innerHTML = `typing<div class="typing-dots">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>`;
-      statusText.classList.add("typing");
-    }
+    updateRecipientHeader(currentRecipient, Array.from(users.values()));
   }
 });
 
 socket.on("user_stop_typing", (data) => {
+  updateTypingStatus(data.sender, false);
   if (data.sender === currentRecipient) {
-    const statusText = document.querySelector(".status-text");
-    if (statusText) {
-      const recipientInfo = users.get(currentRecipient);
-      statusText.textContent = recipientInfo?.isOnline ? "Online" : "Offline";
-      statusText.classList.remove("typing");
-    }
+    updateRecipientHeader(currentRecipient, Array.from(users.values()));
   }
 });
+
+function updateTypingStatus(username, isTyping) {
+  // Actualizar el Map de usuarios escribiendo
+  if (isTyping) {
+    typingUsers.set(username, true);
+  } else {
+    typingUsers.delete(username);
+  }
+
+  // Actualizar el estado en el header
+  if (username === currentRecipient) {
+    const statusText = document.querySelector(".status-text");
+    if (statusText) {
+      if (isTyping && !statusText.classList.contains("typing")) {
+        // Solo actualizar el contenido si no está ya en estado typing
+        if (!statusText.querySelector('.typing-dots')) {
+          statusText.innerHTML = `typing<div class="typing-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>`;
+        }
+        statusText.classList.add("typing");
+      } else if (!isTyping) {
+        const recipientInfo = users.get(currentRecipient);
+        statusText.textContent = recipientInfo?.isOnline ? "Online" : "Offline";
+        statusText.classList.remove("typing");
+      }
+    }
+  }
+
+  // Actualizar la lista de usuarios
+  const userList = document.getElementById("userList");
+  if (userList) {
+    const existingTypingItem = userList.querySelector(
+      `[data-typing="${username}"]`
+    );
+
+    if ((!existingTypingItem && isTyping) || (existingTypingItem && !isTyping)) {
+      socket.emit("get_users_status");
+    }
+  }
+}
 
 document.getElementById("message").addEventListener("keyup", (e) => {
   if (!e.target.value.trim()) {
