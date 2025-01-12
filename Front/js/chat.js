@@ -524,43 +524,47 @@ socket.on("user_stop_typing", (data) => {
 });
 
 function updateTypingStatus(username, isTyping) {
-  // Actualizar el Map de usuarios escribiendo
   if (isTyping) {
     typingUsers.set(username, true);
   } else {
     typingUsers.delete(username);
   }
 
-  // Actualizar el estado en el header
   if (username === currentRecipient) {
     const statusText = document.querySelector(".status-text");
     if (statusText) {
       if (isTyping && !statusText.classList.contains("typing")) {
-        // Solo actualizar el contenido si no está ya en estado typing
-        if (!statusText.querySelector('.typing-dots')) {
-          statusText.innerHTML = `typing<div class="typing-dots">
+        statusText.classList.add("typing");
+        if (!statusText.querySelector(".typing-dots")) {
+          const typingContent = document.createElement("div");
+          typingContent.style.display = "flex";
+          typingContent.style.alignItems = "center";
+          typingContent.innerHTML = `typing<div class="typing-dots">
             <span></span>
             <span></span>
             <span></span>
           </div>`;
+          statusText.innerHTML = "";
+          statusText.appendChild(typingContent);
         }
-        statusText.classList.add("typing");
-      } else if (!isTyping) {
+      } else if (!isTyping && statusText.classList.contains("typing")) {
         const recipientInfo = users.get(currentRecipient);
-        statusText.textContent = recipientInfo?.isOnline ? "Online" : "Offline";
         statusText.classList.remove("typing");
+        statusText.textContent = recipientInfo?.isOnline ? "Online" : "Offline";
       }
     }
   }
 
-  // Actualizar la lista de usuarios
   const userList = document.getElementById("userList");
   if (userList) {
     const existingTypingItem = userList.querySelector(
       `[data-typing="${username}"]`
     );
 
-    if ((!existingTypingItem && isTyping) || (existingTypingItem && !isTyping)) {
+    if (
+      (!existingTypingItem && isTyping) ||
+      (existingTypingItem && !isTyping)
+    ) {
       socket.emit("get_users_status");
     }
   }
