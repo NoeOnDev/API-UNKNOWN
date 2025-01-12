@@ -1,0 +1,919 @@
+:root {
+  --primary-color: #4a90e2;
+  --secondary-color: #f5f5f5;
+  --background-color: #f0f2f5;
+  --surface-color: #ffffff;
+  --text-color: #333;
+  --border-color: #ddd;
+  --hover-color: #357abd;
+  --message-other-bg: #ffffff;
+  --message-own-bg: #4a90e2;
+  --message-own-text: #ffffff;
+  --border-radius: 8px;
+  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --status-read-color: #00ff88;
+}
+
+/* Tema oscuro */
+[data-theme="dark"] {
+  --primary-color: #5c9ce6;
+  --secondary-color: #2c2c2c;
+  --background-color: #1a1a1a;
+  --surface-color: #2d2d2d;
+  --text-color: #e0e0e0;
+  --border-color: #404040;
+  --hover-color: #4a90e2;
+  --message-other-bg: #383838;
+  --message-own-bg: #5c9ce6;
+  --message-own-text: #ffffff;
+  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --status-read-color: #00ff88;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--background-color);
+  margin: 0;
+  padding: 0;
+  color: var(--text-color);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Estilos del Login */
+#login {
+  max-width: 400px;
+  padding: 30px;
+  background: var(--surface-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+}
+
+#login input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 16px;
+  box-sizing: border-box;
+  color: var(--text-color);
+}
+
+#login button {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#login button:hover {
+  background-color: var(--hover-color);
+}
+
+/* Ajustar el contenedor principal del chat */
+#chat {
+  max-width: 100%;
+  margin: 0;
+  background: var(--surface-color);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 20px;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+#userLabel {
+  margin: 0;
+  color: var(--primary-color);
+  font-size: 24px;
+  word-break: break-word;
+}
+
+/* Ajustar el contenedor de la grilla */
+.chat-container {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  height: calc(100vh - 40px);
+}
+
+/* Lista de usuarios */
+.users-section {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#userList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  max-height: none;
+  height: 100%;
+  overflow-y: auto;
+}
+
+#userList li {
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#userList li:hover {
+  background-color: var(--secondary-color);
+}
+
+#userList li.selected {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Añadir estos estilos */
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-item:hover {
+  background-color: var(--secondary-color);
+}
+
+.user-item.selected {
+  background-color: var(--primary-color);
+}
+
+.user-item.selected span {
+  color: white;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.status-online {
+  background-color: #2ecc71;
+}
+
+.status-offline {
+  background-color: #e74c3c;
+}
+
+.last-seen {
+  font-size: 12px;
+  color: var(--text-color);
+  margin-left: auto;
+  opacity: 0.7;
+}
+
+.status-legend {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
+.status-legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Estilos para los items de usuario */
+.user-item {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.user-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 10px;
+}
+
+.user-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  max-width: 60%;
+}
+
+.last-message-time {
+  font-size: 11px;
+  color: var(--text-color);
+  opacity: 0.7;
+  white-space: nowrap;
+  margin-left: auto;
+  min-width: -webkit-fill-available;
+  min-width: fit-content;
+}
+
+/* Ajustar estilos cuando está seleccionado */
+.user-item.selected .last-message-time {
+  color: white;
+  opacity: 0.8;
+}
+
+.user-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+}
+
+.username {
+  font-weight: 500;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.last-message-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-left: 20px;
+  width: calc(100% - 20px);
+}
+
+.last-message {
+  font-size: 13px;
+  color: var(--text-color);
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.last-message.empty {
+  font-style: italic;
+  opacity: 0.5;
+}
+
+.last-message-status {
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.last-message-status i {
+  font-size: 11px;
+}
+
+.user-item.selected .last-message-status {
+  color: white;
+}
+
+.user-item.selected .last-message-status .text-blue {
+  color: var(--status-read-color);
+}
+
+/* Ajustar estilos cuando está seleccionado */
+.user-item.selected {
+  background-color: var(--primary-color);
+}
+
+.user-item.selected .username,
+.user-item.selected .last-message {
+  color: white;
+}
+
+.user-item.selected .unread-counter {
+  background-color: white;
+  color: var(--primary-color);
+}
+
+.user-item.selected .last-message-container .last-message {
+  color: white;
+}
+
+.user-item:hover {
+  background-color: var(--secondary-color);
+}
+
+.user-item.selected:hover {
+  background-color: var(--primary-color);
+}
+
+/* Ajustar el área de mensajes */
+.message-area {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  background: var(--surface-color);
+  box-shadow: var(--box-shadow);
+  height: 100%;
+}
+
+#recipient {
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 16px;
+}
+
+.input-container {
+  display: flex;
+  gap: 10px;
+  position: relative;
+  padding: 10px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  border-top: 1px solid var(--border-color);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+#message {
+  flex: 1;
+  padding: 12px;
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 16px;
+  color: var(--text-color);
+}
+
+.input-container button {
+  padding: 0 20px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-container button:hover {
+  background-color: var(--hover-color);
+  transform: translateY(-1px);
+}
+
+.input-container button i {
+  font-size: 1.2em;
+}
+
+button {
+  padding: 12px 24px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: var(--hover-color);
+}
+
+#messages {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 15px;
+  background-color: var(--secondary-color);
+  border: none;
+  border-radius: 0;
+  margin: 0;
+}
+
+/* Estilos de los mensajes */
+.message {
+  position: relative;
+  margin: 8px 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-container {
+  width: fit-content;
+  max-width: 70%;
+}
+
+.message-container.own {
+  margin-left: auto;
+}
+
+.message-container.other {
+  margin-right: auto;
+}
+
+.own-message,
+.other-message {
+  position: relative;
+  padding: 10px 15px;
+  border-radius: var(--border-radius);
+  word-break: break-word;
+  display: flex;
+  flex-direction: column;
+}
+
+.own-message {
+  background-color: var(--message-own-bg);
+  color: var(--message-own-text);
+  border-radius: 15px 15px 5px 15px;
+}
+
+.other-message {
+  background-color: var(--message-other-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 15px 15px 15px 5px;
+}
+
+.message-content {
+  margin-bottom: 4px;
+}
+
+.message-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 11px;
+  margin-top: auto;
+}
+
+.message-time {
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+.own-message .message-time {
+  color: var(--message-own-text);
+  opacity: 0.8;
+}
+
+.message-status {
+  display: flex;
+  align-items: center;
+}
+
+.message-status i {
+  margin-left: 3px;
+  font-size: 12px;
+}
+
+.own-message .message-status {
+  color: var(--message-own-text);
+  opacity: 0.8;
+}
+
+.text-blue {
+  color: var(--status-read-color);
+  opacity: 1;
+}
+
+.chat-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 15px;
+  background-color: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 0;
+}
+
+.header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.header-info h4 {
+  margin: 0;
+  color: var(--text-color);
+  font-size: 18px;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-text {
+  font-size: 12px;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+/* Estilos para el contador de mensajes no leídos */
+.unread-counter {
+  background-color: #ff3b30;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Tablets y pantallas medianas */
+@media screen and (max-width: 665px) {
+  #chat {
+    padding: 10px;
+    height: 100vh;
+  }
+
+  .chat-container {
+    height: calc(100vh - 60px);
+    grid-template-columns: 1fr;
+  }
+
+  #userList {
+    max-height: 200px;
+  }
+
+  #messages {
+    height: calc(100vh - 400px);
+  }
+
+  .input-container {
+    flex-direction: row;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  #recipient {
+    width: 100%;
+  }
+
+  #message {
+    width: 100%;
+    box-sizing: border-box;
+    flex: 1;
+  }
+
+  .input-container button {
+    padding: 0 15px;
+    width: auto;
+    min-width: 45px;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  .message-area {
+    border-radius: var(--border-radius);
+  }
+
+  .users-header {
+    margin-bottom: 15px;
+  }
+
+  #userLabel {
+    font-size: 20px;
+  }
+
+  .last-message {
+    font-size: 12px;
+  }
+}
+
+/* Móviles */
+@media screen and (max-width: 480px) {
+  body {
+    padding: 10px;
+  }
+
+  .chat-container {
+    height: calc(100vh - 30px);
+  }
+
+  .message-container {
+    max-width: 85%;
+  }
+
+  #login {
+    margin: 50px auto;
+    padding: 20px;
+  }
+
+  #messages {
+    height: 300px;
+  }
+
+  .own-message,
+  .other-message {
+    max-width: 90%;
+  }
+
+  #userLabel {
+    font-size: 20px;
+  }
+
+  .input-container {
+    gap: 8px;
+  }
+
+  #message {
+    font-size: 14px;
+  }
+
+  .input-container button {
+    padding: 0 12px;
+  }
+
+  .input-container button i {
+    font-size: 1em;
+  }
+
+  #messages {
+    height: 300px;
+  }
+
+  .status-text {
+    font-size: 11px;
+  }
+
+  .header-info h4 {
+    font-size: 16px;
+  }
+
+  .users-header {
+    margin-bottom: 10px;
+  }
+
+  #userLabel {
+    font-size: 18px;
+  }
+
+  #settings-icon {
+    padding: 6px;
+    font-size: 1em;
+  }
+}
+
+/* Ajustes para pantallas muy pequeñas */
+@media screen and (max-width: 320px) {
+  #messages {
+    height: 250px;
+  }
+
+  #login {
+    padding: 15px;
+  }
+
+  #login input,
+  #login button {
+    padding: 8px;
+  }
+}
+
+/* Reemplazar los estilos del theme-switch con estos */
+.settings-button {
+  position: relative;
+  z-index: 1000;
+}
+
+#settings-icon {
+  cursor: pointer;
+  font-size: 1.2em;
+  color: var(--text-color);
+  transition: transform 0.3s ease;
+}
+
+#settings-icon:hover {
+  transform: rotate(45deg);
+}
+
+.settings-menu {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  background: var(--surface-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  width: 250px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+.settings-menu.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.settings-header {
+  padding: 15px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.settings-header h4 {
+  margin: 0;
+  color: var(--text-color);
+  font-size: 16px;
+}
+
+.settings-content {
+  padding: 15px;
+}
+
+.settings-section h5 {
+  margin: 0 0 10px 0;
+  color: var(--text-color);
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.theme-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.theme-option:hover {
+  background-color: var(--secondary-color);
+}
+
+.theme-option i:first-child {
+  width: 20px;
+  margin-right: 12px;
+  color: var(--text-color);
+}
+
+.theme-option span {
+  flex: 1;
+  color: var(--text-color);
+}
+
+.check-icon {
+  color: var(--primary-color);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.check-icon.active {
+  opacity: 1;
+}
+
+/* Estilos del scroll */
+#messages::-webkit-scrollbar,
+#userList::-webkit-scrollbar {
+  width: 8px;
+}
+
+#messages::-webkit-scrollbar-track,
+#userList::-webkit-scrollbar-track {
+  background: var(--surface-color);
+  border-radius: 4px;
+}
+
+#messages::-webkit-scrollbar-thumb,
+#userList::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+#messages::-webkit-scrollbar-thumb:hover,
+#userList::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
+/* Para Firefox */
+#messages,
+#userList {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) var(--surface-color);
+}
+
+/* Agregar estos estilos */
+.users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.status-text.typing {
+  color: var(--primary-color);
+  font-weight: 500;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.typing-dots {
+  display: inline-flex;
+  margin-left: 2px;
+  align-items: center;
+}
+
+.typing-dots span {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  opacity: 0.6;
+  will-change: transform, opacity;
+}
+
+.typing-dots span:nth-child(1) {
+  animation: typingDot 1s infinite 0s;
+}
+
+.typing-dots span:nth-child(2) {
+  animation: typingDot 1s infinite 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation: typingDot 1s infinite 0.4s;
+}
+
+@keyframes typingDot {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-2px);
+    opacity: 1;
+  }
+}
+
+.status-text.typing .typing-dots span,
+.last-message.typing .typing-dots span {
+  background-color: var(--primary-color);
+}
+
+.user-item.selected .last-message.typing .typing-dots span,
+.user-item.selected .status-text.typing .typing-dots span {
+  background-color: white;
+}

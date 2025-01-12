@@ -537,8 +537,6 @@ function updateTypingStatus(username, isTyping) {
         statusText.classList.add("typing");
         if (!statusText.querySelector(".typing-dots")) {
           const typingContent = document.createElement("div");
-          typingContent.style.display = "flex";
-          typingContent.style.alignItems = "center";
           typingContent.innerHTML = `typing<div class="typing-dots">
             <span></span>
             <span></span>
